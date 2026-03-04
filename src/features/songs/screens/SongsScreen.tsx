@@ -10,12 +10,12 @@ import type { SongsStackParamList } from '@/app/navigationTypes';
 import type { SongSortMode } from '@/types';
 
 /**
- * Songs Browse Screen — stub.
+ * Songs Browse Screen.
  *
- * Sprint 2 Tasks:
- *  - S2-07: Render song list using FlashList + SongRow
- *  - S2-08: Sort chips (A-Z / Popular / Recent / Genre)
- *  - S2-09: Navigate to LyricsScreen on tap
+ * Features:
+ *  - Search bar + sort/filter chips (A-Z / Popular / Recent / Genre)
+ *  - Grouped SectionList with sticky headers
+ *  - Navigate to LyricsScreen on song tap
  */
 
 /**
@@ -45,6 +45,7 @@ export default function SongsScreen() {
   const isSmallScreen = width < 375;
   const [query, setQuery] = useState('');
   const [sort, setSort] = useState<SongSortKey>('title');
+  const screenStyle = { ...styles.container, paddingHorizontal: width * 0.04 };
 
   const { data: songs, isLoading, isError } = useSongs(sort);
 
@@ -66,7 +67,7 @@ export default function SongsScreen() {
   }, [filteredSongs]);
 
   return (
-    <AppScreen style={[styles.container, { paddingHorizontal: width * 0.04 }]}> {/* 4% padding */}
+    <AppScreen style={screenStyle}>
       <AppText variant="pageTitle" style={[styles.title, isSmallScreen && styles.titleSmall]}> 
         Songs
       </AppText>
