@@ -64,7 +64,7 @@ export interface SearchResult {
 }
 
 /** Filter/sort options for Songs list */
-export type SongSortMode = 'title' | 'artist' | 'recent' | 'popular';
+export type SongSortMode = 'title' | 'genre' | 'recent' | 'popular';
 
 /** Filter tabs for Search */
 export type SearchFilterType = 'all' | 'song' | 'artist' | 'album' | 'lyrics';

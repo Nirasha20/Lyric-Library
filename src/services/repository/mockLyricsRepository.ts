@@ -46,8 +46,8 @@ export class MockLyricsRepository implements LyricsRepository {
       case 'title':
         sorted.sort((a, b) => a.title.localeCompare(b.title));
         break;
-      case 'artist':
-        sorted.sort((a, b) => a.artistName.localeCompare(b.artistName));
+      case 'genre':
+        sorted.sort((a, b) => (a.genre ?? '').localeCompare(b.genre ?? ''));
         break;
       case 'recent':
         sorted.sort((a, b) => (b.releaseYear ?? 0) - (a.releaseYear ?? 0));

@@ -1,32 +1,189 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { AppScreen, AppText } from '@/components';
+import React, { useState, useMemo } from 'react';
+import { View, StyleSheet, SectionList, useWindowDimensions, Platform, FlatList } from 'react-native';
+import { AppScreen, AppText, AppSearchBar, Chip, SongRow, LoadingState, EmptyState } from '@/components';
+import { useSongs } from '@/hooks/queries/useSongs';
+import { filterSongs } from '@/utils/filters';
+import { groupByInitial } from '@/utils/groupers';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { SongsStackParamList } from '@/app/navigationTypes';
+import type { SongSortMode } from '@/types';
 
 /**
- * Songs Browse Screen — stub.
+ * Songs Browse Screen.
  *
- * Sprint 2 Tasks:
- *  - S2-07: Render song list using FlashList + SongRow
- *  - S2-08: Sort chips (Title / Artist / Recent / Popular)
- *  - S2-09: Navigate to LyricsScreen on tap
+ * Features:
+ *  - Search bar + sort/filter chips (A-Z / Popular / Recent / Genre)
+ *  - Grouped SectionList with sticky headers
+ *  - Navigate to LyricsScreen on song tap
+ */
+
+/**
+ * Supported sort modes for SongsScreen
+ */
+type SongSortKey = SongSortMode;
+
+const SORT_OPTIONS: { key: SongSortKey; label: string }[] = [
+  { key: 'title', label: 'A-Z' },
+  { key: 'popular', label: 'Popular' },
+  { key: 'recent', label: 'Recent' },
+  { key: 'genre', label: 'Genre' },
+];
+
+
+/**
+ * SongsScreen displays a searchable, filterable, grouped list of songs.
+ * - Search bar at top
+ * - Filter chips for sort modes
+ * - Grouped list by first letter with sticky section headers
+ * - SongRow for each song, navigates to LyricsScreen
+ * - Loading/empty states
  */
 export default function SongsScreen() {
+  const navigation = useNavigation<NativeStackNavigationProp<SongsStackParamList>>();
+  const { width } = useWindowDimensions();
+  const isSmallScreen = width < 375;
+  const [query, setQuery] = useState('');
+  const [sort, setSort] = useState<SongSortKey>('title');
+  const screenStyle = { ...styles.container, paddingHorizontal: width * 0.04 };
+
+  const { data: songs, isLoading, isError } = useSongs(sort);
+
+  // Filter and group songs
+  const filteredSongs = useMemo(() => songs ? filterSongs(songs, query) : [], [songs, query]);
+  // groupByInitial expects T extends Record<string, string>, but Song has optional string fields. We'll cast for grouping by title.
+  const grouped = useMemo(() => {
+    if (!filteredSongs.length) return [];
+    // groupByInitial expects Record<string, string>[]; map Song to { id, title, artistName }
+    const stringSongs = filteredSongs.map(s => ({
+      id: s.id,
+      title: s.title || '',
+      artistName: s.artistName || '',
+    }));
+    const groupedObj = groupByInitial(stringSongs, 'title');
+    return Object.keys(groupedObj)
+      .sort((a, b) => a.localeCompare(b))
+      .map(letter => ({ title: letter, data: groupedObj[letter] }));
+  }, [filteredSongs]);
+
   return (
-    <AppScreen>
-      <AppText variant="pageTitle">Songs</AppText>
-      <View style={styles.placeholder}>
-        <AppText variant="pageSubtitle">
-          🎶  Song list will be implemented here (Sprint 2)
-        </AppText>
+    <AppScreen style={screenStyle}>
+      <AppText variant="pageTitle" style={[styles.title, isSmallScreen && styles.titleSmall]}> 
+        Songs
+      </AppText>
+      <AppText variant="pageSubtitle" style={[styles.subtitle, isSmallScreen && styles.subtitleSmall]}> 
+        Browse all available lyrics
+      </AppText>
+
+      <View style={styles.searchBar}>
+        <AppSearchBar
+          value={query}
+          onChangeText={setQuery}
+          placeholder="Search songs..."
+          active={!!query}
+        />
       </View>
+
+      <View style={styles.chipRowWrapper}> 
+        {/* Horizontal filter chips for sort modes, scrollable */}
+        <FlatList
+          data={SORT_OPTIONS}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={item => item.key}
+          renderItem={({ item }) => (
+            <Chip
+              label={item.label}
+              active={sort === item.key}
+              onPress={() => setSort(item.key)}
+              style={styles.chip}
+            />
+          )}
+          contentContainerStyle={styles.chipRow}
+        />
+      </View>
+
+      {isLoading && (
+        <LoadingState message="Loading songs..." />
+      )}
+      {!isLoading && isError && (
+        <EmptyState title="Failed to load songs." />
+      )}
+      {!isLoading && !isError && (
+        <SectionList
+          sections={grouped}
+          keyExtractor={item => item.id}
+          renderSectionHeader={({ section: { title } }) => (
+            <AppText variant="sectionHeader" style={styles.sectionHeader}>{title}</AppText>
+          )}
+          renderItem={({ item }) => (
+            <SongRow
+              title={item.title}
+              meta={item.artistName}
+              onPress={() => navigation.navigate('Lyrics', {
+                songId: item.id,
+                songTitle: item.title,
+                artistName: item.artistName,
+              })}
+            />
+          )}
+          contentContainerStyle={grouped.length === 0 ? styles.emptyList : styles.songList}
+          ListEmptyComponent={<EmptyState title="No songs found." />}
+          stickySectionHeadersEnabled={true}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
     </AppScreen>
   );
 }
 
 const styles = StyleSheet.create({
-  placeholder: {
+  container: {
     flex: 1,
+  },
+  title: {
+    marginTop: 8,
+    marginBottom: 0,
+  },
+  titleSmall: {
+    fontSize: 28,
+  },
+  subtitle: {
+    marginBottom: 16,
+  },
+  subtitleSmall: {
+    fontSize: 14,
+  },
+  searchBar: {
+    marginBottom: 12,
+  },
+  chipRowWrapper: {
+    marginBottom: 8,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingHorizontal: 0,
+    minHeight: 40,
+  },
+  chip: {
+    marginRight: 4,
+    minWidth: 72,
+    borderRadius: 20,
+  },
+  sectionHeader: {
+    marginTop: 16,
+    marginBottom: 4,
+    marginLeft: 8,
+  },
+  emptyList: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 200,
+  },
+  songList: {
+    paddingBottom: Platform.OS === 'ios' ? 32 : 16,
   },
 });
