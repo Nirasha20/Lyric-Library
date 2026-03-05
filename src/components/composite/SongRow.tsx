@@ -26,35 +26,35 @@ export const SongRow = memo(function SongRow({
   actionLabel = 'View',
   onPress,
   onActionPress,
-}: SongRowProps) {
+}: Readonly<SongRowProps>) {
   return (
-    <Pressable
-      onPress={onPress}
-      style={({ pressed }) => [styles.row, pressed && styles.pressed]}
-      accessibilityRole="button"
-      accessibilityLabel={`${title} by ${meta}`}
-    >
-      <View style={styles.info}>
+    <View style={styles.row}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [styles.info, pressed && styles.pressed]}
+        accessibilityRole="button"
+        accessibilityLabel={`Open song: ${title}. Details: ${meta}.`}
+      >
         <AppText variant="itemTitle" numberOfLines={1}>
           {title}
         </AppText>
         <AppText variant="itemMeta" numberOfLines={1}>
           {meta}
         </AppText>
-      </View>
+      </Pressable>
 
       <Pressable
         onPress={onActionPress ?? onPress}
         hitSlop={4}
-        style={styles.actionBtn}
+        style={({ pressed }) => [styles.actionBtn, pressed && styles.pressed]}
         accessibilityRole="button"
-        accessibilityLabel={`${actionLabel} ${title}`}
+        accessibilityLabel={`${actionLabel} lyrics for ${title}`}
       >
         <AppText variant="actionLabel" color={colors.primary}>
           {actionLabel}
         </AppText>
       </Pressable>
-    </Pressable>
+    </View>
   );
 });
 

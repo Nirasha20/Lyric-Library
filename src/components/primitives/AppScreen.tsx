@@ -26,7 +26,7 @@ export function AppScreen({
   backgroundColor = colors.bgPrimary,
   padded = true,
   style,
-}: AppScreenProps) {
+}: Readonly<AppScreenProps>) {
   const insets = useSafeAreaInsets();
   const dynamicStyles = StyleSheet.create({
     container: {
