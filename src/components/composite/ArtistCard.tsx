@@ -1,5 +1,6 @@
 import React, { memo } from 'react';
-import { Pressable, View, StyleSheet } from 'react-native';
+import { Pressable, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors, spacing, radii, shadows } from '@/theme';
 import { AppText } from '../primitives/AppText';
 
@@ -34,20 +35,25 @@ export const ArtistCard = memo(function ArtistCard({
       accessibilityRole="button"
       accessibilityLabel={`${name}, ${songCount} songs`}
     >
-      <View
-        style={[
-          styles.avatar,
-          alternateGradient ? styles.avatarAlt : styles.avatarDefault,
-        ]}
+      <LinearGradient
+        colors={
+          alternateGradient 
+          
+            ? ['#e78c50', '#cd220f']
+            :  ['#7a23ac', '#d74eae']
+        }
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.avatar}
       >
         <AppText variant="avatarLetterSmall" color={colors.white}>
           {initial}
         </AppText>
-      </View>
+      </LinearGradient>
       <AppText variant="cardTitle" center numberOfLines={1}>
         {name}
       </AppText>
-      <AppText variant="cardCaption" center>
+      <AppText variant="cardCaption" center numberOfLines={1}>
         {songCount} songs
       </AppText>
     </Pressable>
@@ -56,13 +62,17 @@ export const ArtistCard = memo(function ArtistCard({
 
 const styles = StyleSheet.create({
   card: {
+    flex: 1,
+    aspectRatio: 0.85,
     backgroundColor: colors.bgElevated,
     borderRadius: radii.xl,
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.md,
     alignItems: 'center',
+    justifyContent: 'center',
     borderWidth: 2,
     borderColor: colors.border,
+    margin: spacing.xs,
     ...shadows.card,
   },
   pressed: {
@@ -76,13 +86,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm + 2,
-  },
-  avatarDefault: {
-    // gradient1 solid fallback (interns can replace with LinearGradient)
-    backgroundColor: colors.primary,
-  },
-  avatarAlt: {
-    // gradient2 solid fallback
-    backgroundColor: colors.accent,
   },
 });

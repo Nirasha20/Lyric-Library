@@ -106,9 +106,9 @@ export const textVariants = {
   /** Card/grid avatar initials (smaller) */
   avatarLetterSmall: {
     fontFamily: fontFamily.heading,
-    fontSize: fontSize.xxl * 0.75,
+    fontSize: fontSize.xxl * 0.6,
     fontWeight: fontWeight.bold,
-    lineHeight: fontSize.xxl * 0.75 * lineHeight.normal,
+    lineHeight: fontSize.xxl * 0.6 * lineHeight.normal,
   } satisfies TextStyle,
 
   /** Page subtitle — "Browse lyrics by artist" */

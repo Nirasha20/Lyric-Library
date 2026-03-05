@@ -47,10 +47,13 @@ export function Chip({ label, active = false, onPress, style }: ChipProps) {
 
 const styles = StyleSheet.create({
   base: {
-    paddingVertical: spacing.sm + 2,
-    paddingHorizontal: spacing.xl - 2,
-    borderRadius: radii.pill,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm + 2,
+    borderRadius: radii.md,
     borderWidth: 2,
+    minWidth: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   active: {
     backgroundColor: colors.primary,
