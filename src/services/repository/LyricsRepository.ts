@@ -1,4 +1,12 @@
-import { Artist, Song, Lyrics, SearchResult, SongSortMode } from '@/types';
+import {
+  Artist,
+  Song,
+  Lyrics,
+  SearchResult,
+  SongSortMode,
+  ArtistsQueryParams,
+  SongsQueryParams,
+} from '@/types';
 
 /**
  * Abstract repository interface for the Lyric Library data layer.
@@ -6,11 +14,11 @@ import { Artist, Song, Lyrics, SearchResult, SongSortMode } from '@/types';
  */
 export interface LyricsRepository {
   /* ── Artists ─────────────────────────────────────────────────── */
-  getArtists(): Promise<Artist[]>;
+  getArtists(params?: ArtistsQueryParams): Promise<Artist[]>;
   getArtistById(id: string): Promise<Artist | undefined>;
 
   /* ── Songs ──────────────────────────────────────────────────── */
-  getSongs(sort?: SongSortMode): Promise<Song[]>;
+  getSongs(params?: SongsQueryParams | SongSortMode): Promise<Song[]>;
   getSongsByArtist(artistId: string): Promise<Song[]>;
   getSongById(id: string): Promise<Song | undefined>;
 

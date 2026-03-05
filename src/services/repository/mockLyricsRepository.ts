@@ -5,6 +5,8 @@ import type {
   Lyrics,
   SearchResult,
   SongSortMode,
+  ArtistsQueryParams,
+  SongsQueryParams,
 } from '@/types';
 
 import artistsData from '@/data/mock/artists.json';
@@ -25,23 +27,149 @@ const FAKE_DELAY = 350;
 const delay = (ms: number = FAKE_DELAY) =>
   new Promise<void>((r) => setTimeout(r, ms));
 
+const ARTIST_TARGET_COUNT = 60;
+const SONG_TARGET_COUNT = 125;
+
+function cloneArtist(artist: Artist, cloneIndex: number): Artist {
+  const suffix = `-x${cloneIndex}`;
+  const cloneName = `${artist.name} ${cloneIndex + 1}`;
+
+  return {
+    ...artist,
+    id: `${artist.id}${suffix}`,
+    name: cloneName,
+    albums: artist.albums.map((album) => ({
+      ...album,
+      id: `${album.id}${suffix}`,
+      artistId: `${artist.id}${suffix}`,
+      artistName: cloneName,
+    })),
+  };
+}
+
+function buildScaledArtists(baseArtists: Artist[]): Artist[] {
+  if (baseArtists.length >= ARTIST_TARGET_COUNT) {
+    return baseArtists;
+  }
+
+  const result: Artist[] = [...baseArtists];
+  let cloneIndex = 1;
+
+  while (result.length < ARTIST_TARGET_COUNT) {
+    const sourceArtist = baseArtists[(cloneIndex - 1) % baseArtists.length];
+    result.push(cloneArtist(sourceArtist, cloneIndex));
+    cloneIndex += 1;
+  }
+
+  return result;
+}
+
+function cloneSong(song: Song, cloneIndex: number, artistMap: Map<string, Artist>): Song {
+  const suffix = `-x${cloneIndex}`;
+  const clonedArtistId = `${song.artistId}${suffix}`;
+  const clonedArtist = artistMap.get(clonedArtistId);
+
+  return {
+    ...song,
+    id: `${song.id}${suffix}`,
+    artistId: clonedArtist?.id ?? song.artistId,
+    artistName: clonedArtist?.name ?? song.artistName,
+    albumId: song.albumId ? `${song.albumId}${suffix}` : song.albumId,
+    albumTitle: song.albumTitle,
+  };
+}
+
+function buildScaledSongs(baseSongs: Song[], scaledArtists: Artist[]): Song[] {
+  if (baseSongs.length >= SONG_TARGET_COUNT) {
+    return baseSongs;
+  }
+
+  const artistMap = new Map(scaledArtists.map((artist) => [artist.id, artist]));
+  const result: Song[] = [...baseSongs];
+  let cloneIndex = 1;
+
+  while (result.length < SONG_TARGET_COUNT) {
+    for (const baseSong of baseSongs) {
+      if (result.length >= SONG_TARGET_COUNT) {
+        break;
+      }
+      result.push(cloneSong(baseSong, cloneIndex, artistMap));
+    }
+    cloneIndex += 1;
+  }
+
+  return result;
+}
+
+const scaledArtists = buildScaledArtists(artists);
+const scaledSongs = buildScaledSongs(songs, scaledArtists);
+
 /* ── Mock implementation ───────────────────────────────────────── */
 export class MockLyricsRepository implements LyricsRepository {
   /* Artists */
-  async getArtists(): Promise<Artist[]> {
+  async getArtists(params?: ArtistsQueryParams): Promise<Artist[]> {
     await delay();
-    return artists;
+
+    let result = [...scaledArtists];
+
+    if (params?.startsWith) {
+      const startsWith = params.startsWith.toLowerCase();
+      result = result.filter((artist) =>
+        artist.name.toLowerCase().startsWith(startsWith),
+      );
+    }
+
+    if (params?.query?.trim()) {
+      const query = params.query.trim().toLowerCase();
+      result = result.filter((artist) =>
+        artist.name.toLowerCase().includes(query),
+      );
+    }
+
+    return result;
   }
 
   async getArtistById(id: string): Promise<Artist | undefined> {
     await delay();
-    return artists.find((a) => a.id === id);
+    return scaledArtists.find((a) => a.id === id);
   }
 
   /* Songs */
-  async getSongs(sort: SongSortMode = 'title'): Promise<Song[]> {
+  async getSongs(params?: SongsQueryParams | SongSortMode): Promise<Song[]> {
     await delay();
-    const sorted = [...songs];
+
+    const normalizedParams: SongsQueryParams =
+      typeof params === 'string'
+        ? { sort: params }
+        : params ?? { sort: 'title' };
+
+    const sort = normalizedParams.sort ?? 'title';
+    let result = [...scaledSongs];
+
+    if (normalizedParams.artistId) {
+      result = result.filter((song) => song.artistId === normalizedParams.artistId);
+    }
+
+    if (normalizedParams.albumId) {
+      result = result.filter((song) => song.albumId === normalizedParams.albumId);
+    }
+
+    if (normalizedParams.genre) {
+      const genre = normalizedParams.genre.toLowerCase();
+      result = result.filter((song) => (song.genre ?? '').toLowerCase() === genre);
+    }
+
+    if (normalizedParams.query?.trim()) {
+      const query = normalizedParams.query.trim().toLowerCase();
+      result = result.filter(
+        (song) =>
+          song.title.toLowerCase().includes(query) ||
+          song.artistName.toLowerCase().includes(query) ||
+          (song.albumTitle ?? '').toLowerCase().includes(query),
+      );
+    }
+
+    const sorted = [...result];
     switch (sort) {
       case 'title':
         sorted.sort((a, b) => a.title.localeCompare(b.title));
@@ -61,12 +189,12 @@ export class MockLyricsRepository implements LyricsRepository {
 
   async getSongsByArtist(artistId: string): Promise<Song[]> {
     await delay();
-    return songs.filter((s) => s.artistId === artistId);
+    return scaledSongs.filter((s) => s.artistId === artistId);
   }
 
   async getSongById(id: string): Promise<Song | undefined> {
     await delay();
-    return songs.find((s) => s.id === id);
+    return scaledSongs.find((s) => s.id === id);
   }
 
   /* Lyrics */
@@ -84,7 +212,7 @@ export class MockLyricsRepository implements LyricsRepository {
     const results: SearchResult[] = [];
 
     // Search artists
-    artists.forEach((artist) => {
+    scaledArtists.forEach((artist) => {
       if (artist.name.toLowerCase().includes(q)) {
         results.push({
           id: `result-artist-${artist.id}`,
@@ -97,7 +225,7 @@ export class MockLyricsRepository implements LyricsRepository {
     });
 
     // Search songs
-    songs.forEach((song) => {
+    scaledSongs.forEach((song) => {
       if (
         song.title.toLowerCase().includes(q) ||
         song.artistName.toLowerCase().includes(q)
@@ -118,7 +246,7 @@ export class MockLyricsRepository implements LyricsRepository {
         section.lines.some((line) => line.toLowerCase().includes(q)),
       );
       if (match) {
-        const song = songs.find((s) => s.id === lyricsEntry.songId);
+        const song = scaledSongs.find((s) => s.id === lyricsEntry.songId);
         if (song) {
           // avoid duplicate if song was already matched by title
           const alreadyAdded = results.some(
