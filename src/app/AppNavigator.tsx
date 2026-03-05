@@ -1,7 +1,7 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Platform } from 'react-native';
 
 import { colors } from '@/theme';
 import type {
@@ -16,6 +16,7 @@ import type {
 // Stub screens — interns will flesh these out in Sprint 2 & 3
 import ArtistsScreen from '@/features/artists/screens/ArtistsScreen';
 import ArtistDetailScreen from '@/features/artists/screens/ArtistDetailScreen';
+import AlbumDetailScreen from '@/features/artists/screens/AlbumDetailScreen';
 import SongsScreen from '@/features/songs/screens/SongsScreen';
 import LyricsScreen from '@/features/songs/screens/LyricsScreen';
 import SearchScreen from '@/features/search/screens/SearchScreen';
@@ -33,6 +34,7 @@ function ArtistsStackNavigator() {
     <ArtistsStack.Navigator screenOptions={{ headerShown: false }}>
       <ArtistsStack.Screen name="ArtistsList" component={ArtistsScreen} />
       <ArtistsStack.Screen name="ArtistDetail" component={ArtistDetailScreen} />
+      <ArtistsStack.Screen name="AlbumDetail" component={AlbumDetailScreen} />
       <ArtistsStack.Screen name="Lyrics" component={LyricsScreen} />
     </ArtistsStack.Navigator>
   );
@@ -69,11 +71,10 @@ function SavedStackNavigator() {
 // ─── Tab Icon Component ──────────────────────────────────────────
 
 interface TabIconProps {
-  label: string;
   focused: boolean;
 }
 
-function TabIcon({ focused }: TabIconProps) {
+function TabIcon({ focused }: Readonly<TabIconProps>) {
   return (
     <View
       style={[
@@ -82,6 +83,10 @@ function TabIcon({ focused }: TabIconProps) {
       ]}
     />
   );
+}
+
+function renderTabIcon({ focused }: Readonly<{ focused: boolean }>) {
+  return <TabIcon focused={focused} />;
 }
 
 // ─── Root Tab Navigator ──────────────────────────────────────────
@@ -94,9 +99,11 @@ export function AppNavigator() {
       screenOptions={{
         headerShown: false,
         tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabBarItem,
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textTertiary,
         tabBarLabelStyle: styles.tabLabel,
+        tabBarIcon: renderTabIcon,
       }}
     >
       <Tab.Screen
@@ -104,7 +111,6 @@ export function AppNavigator() {
         component={ArtistsStackNavigator}
         options={{
           tabBarLabel: 'Artists',
-          tabBarIcon: ({ focused }) => <TabIcon label="Artists" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -112,7 +118,6 @@ export function AppNavigator() {
         component={SongsStackNavigator}
         options={{
           tabBarLabel: 'Songs',
-          tabBarIcon: ({ focused }) => <TabIcon label="Songs" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -120,7 +125,6 @@ export function AppNavigator() {
         component={SearchStackNavigator}
         options={{
           tabBarLabel: 'Search',
-          tabBarIcon: ({ focused }) => <TabIcon label="Search" focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -128,7 +132,6 @@ export function AppNavigator() {
         component={SavedStackNavigator}
         options={{
           tabBarLabel: 'Saved',
-          tabBarIcon: ({ focused }) => <TabIcon label="Saved" focused={focused} />,
         }}
       />
     </Tab.Navigator>
@@ -141,8 +144,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 2,
     borderTopColor: colors.border,
     paddingTop: 8,
-    paddingBottom: 24,
-    height: 80,
+    paddingBottom: Platform.OS === 'ios' ? 12 : 8,
+    height: Platform.OS === 'ios' ? 88 : 74,
+  },
+  tabBarItem: {
+    justifyContent: 'center',
   },
   tabLabel: {
     fontSize: 11,
