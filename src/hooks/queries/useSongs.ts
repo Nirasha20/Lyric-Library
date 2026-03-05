@@ -1,12 +1,19 @@
 import { useQuery } from '@tanstack/react-query';
 import { lyricsRepository } from '@/services';
-import type { SongSortMode } from '@/types';
+import type { SongsQueryParams } from '@/types';
 
 /** Fetch all songs with optional sort. */
-export const useSongs = (sort: SongSortMode = 'title') =>
+export const useSongs = (params: SongsQueryParams = {}) =>
   useQuery({
-    queryKey: ['songs', sort],
-    queryFn: () => lyricsRepository.getSongs(sort),
+    queryKey: [
+      'songs',
+      params.sort ?? 'title',
+      params.query ?? '',
+      params.artistId ?? '',
+      params.albumId ?? '',
+      params.genre ?? '',
+    ],
+    queryFn: () => lyricsRepository.getSongs(params),
   });
 
 /** Fetch songs for a specific artist. */
