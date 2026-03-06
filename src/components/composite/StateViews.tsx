@@ -6,7 +6,7 @@ import { AppButton } from '../primitives/AppButton';
 
 // ─── Loading State ───────────────────────────────────────────────
 
-export function LoadingState({ message = 'Loading...' }: { message?: string }) {
+export function LoadingState({ message = 'Loading...' }: Readonly<{ message?: string }>) {
   return (
     <View style={styles.center}>
       <ActivityIndicator size="large" color={colors.primary} />
@@ -24,7 +24,7 @@ interface EmptyStateProps {
   subtitle?: string;
 }
 
-export function EmptyState({ title, subtitle }: EmptyStateProps) {
+export function EmptyState({ title, subtitle }: Readonly<EmptyStateProps>) {
   return (
     <View style={styles.center}>
       <AppText variant="detailTitle" center>
@@ -49,7 +49,7 @@ interface ErrorStateProps {
 export function ErrorState({
   message = 'Something went wrong',
   onRetry,
-}: ErrorStateProps) {
+}: Readonly<ErrorStateProps>) {
   return (
     <View style={styles.center}>
       <AppText variant="detailTitle" center>

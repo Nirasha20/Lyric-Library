@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { lyricsRepository } from '@/services';
+import type { ArtistsQueryParams } from '@/types';
 
 /** Fetch all artists. */
-export const useArtists = () =>
+export const useArtists = (params?: ArtistsQueryParams) =>
   useQuery({
-    queryKey: ['artists'],
-    queryFn: () => lyricsRepository.getArtists(),
+    queryKey: ['artists', params?.query ?? '', params?.startsWith ?? ''],
+    queryFn: () => lyricsRepository.getArtists(params),
   });
 
 /** Fetch a single artist by ID. */

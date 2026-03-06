@@ -4,23 +4,13 @@
     "slug": "lyric-library",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "splash": {
-      "image": "./assets/splash-icon.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#FDFBF7"
-    },
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.furolabs.lyriclibrary"
     },
     "android": {
-      "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#FDFBF7"
-      },
       "package": "com.furolabs.lyriclibrary"
     },
     "plugins": [

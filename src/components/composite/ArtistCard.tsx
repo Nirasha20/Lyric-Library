@@ -1,7 +1,7 @@
 import React, { memo } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, spacing, radii, shadows } from '@/theme';
+import { colors, spacing, radii, shadows, gradients } from '@/theme';
 import { AppText } from '../primitives/AppText';
 
 interface ArtistCardProps {
@@ -27,7 +27,11 @@ export const ArtistCard = memo(function ArtistCard({
   initial,
   alternateGradient = false,
   onPress,
-}: ArtistCardProps) {
+}: Readonly<ArtistCardProps>) {
+  const selectedGradient = alternateGradient
+    ? gradients.gradient2
+    : gradients.gradient1;
+
   return (
     <Pressable
       onPress={onPress}
@@ -36,14 +40,9 @@ export const ArtistCard = memo(function ArtistCard({
       accessibilityLabel={`${name}, ${songCount} songs`}
     >
       <LinearGradient
-        colors={
-          alternateGradient 
-          
-            ? ['#e78c50', '#cd220f']
-            :  ['#7a23ac', '#d74eae']
-        }
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
+        colors={[...selectedGradient.colors]}
+        start={selectedGradient.start}
+        end={selectedGradient.end}
         style={styles.avatar}
       >
         <AppText variant="avatarLetterSmall" color={colors.white}>

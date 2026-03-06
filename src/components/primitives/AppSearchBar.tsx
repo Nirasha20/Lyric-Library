@@ -31,7 +31,7 @@ export function AppSearchBar({
   active = false,
   onFocus,
   onBlur,
-}: AppSearchBarProps) {
+}: Readonly<AppSearchBarProps>) {
   return (
     <View style={[styles.container, active ? styles.containerActive : styles.containerInactive]}>
       {/* Search icon */}
@@ -78,11 +78,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.bgElevated,
   },
   containerInactive: {
-    borderWidth: 0,
+    borderWidth: 3,
+    borderColor: colors.border,
     ...shadows.card,
   },
   containerActive: {
-    borderWidth: 0,
+    borderWidth: 3,
+    borderColor: colors.primary,
     ...shadows.searchActive,
   },
 
