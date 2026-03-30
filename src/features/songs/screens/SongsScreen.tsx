@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
-import { View, StyleSheet, SectionList, useWindowDimensions, Platform, FlatList } from 'react-native';
+import { View, StyleSheet, useWindowDimensions, Platform } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { AppScreen, AppText, AppSearchBar, Chip, SongRow, LoadingState, EmptyState } from '@/components';
 import { useSongs } from '@/hooks/queries/useSongs';
 import { groupByInitial } from '@/utils/groupers';
@@ -52,7 +53,8 @@ export default function SongsScreen() {
   // Filter and group songs
   const filteredSongs = useMemo(() => songs ?? [], [songs]);
   // groupByInitial expects T extends Record<string, string>, but Song has optional string fields. We'll cast for grouping by title.
-  const grouped = useMemo(() => {
+  type SongSection = { title: string; data: { id: string; title: string; artistName: string }[] };
+  const grouped: SongSection[] = useMemo(() => {
     if (!filteredSongs.length) return [];
     // groupByInitial expects Record<string, string>[]; map Song to { id, title, artistName }
     const stringSongs = filteredSongs.map(s => ({
@@ -86,7 +88,7 @@ export default function SongsScreen() {
 
       <View style={styles.chipRowWrapper}> 
         {/* Horizontal filter chips for sort modes, scrollable */}
-        <FlatList
+        <FlashList
           data={SORT_OPTIONS}
           horizontal
           showsHorizontalScrollIndicator={false}
@@ -99,6 +101,7 @@ export default function SongsScreen() {
               style={styles.chip}
             />
           )}
+          estimatedItemSize={80}
           contentContainerStyle={styles.chipRow}
         />
       </View>
@@ -110,29 +113,32 @@ export default function SongsScreen() {
         <EmptyState title="Failed to load songs." />
       )}
       {!isLoading && !isError && (
-        <SectionList
-          sections={grouped}
-          keyExtractor={item => item.id}
-          renderSectionHeader={({ section: { title } }) => (
-            <View style={styles.sectionHeaderContainer}>
-              <AppText variant="sectionHeader" style={styles.sectionHeader}>{title}</AppText>
-            </View>
-          )}
+        <FlashList
+          data={grouped.flatMap(section => section.data.map(item => ({ ...item, sectionTitle: section.title })))}
+          keyExtractor={(item) => item.id}
           renderItem={({ item }) => (
-            <SongRow
-              title={item.title}
-              meta={item.artistName}
-              onPress={() => navigation.navigate('Lyrics', {
-                songId: item.id,
-                songTitle: item.title,
-                artistName: item.artistName,
-              })}
-            />
-          )}
-          contentContainerStyle={grouped.length === 0 ? styles.emptyList : styles.songList}
+            <>
+              {/* Render section header if first item of section */}
+              {grouped.find(section => section.title === item.sectionTitle)?.data[0].id === item.id && (
+                <View style={styles.sectionHeaderContainer}>
+                  <AppText variant="sectionHeader" style={styles.sectionHeader}>{item.sectionTitle}</AppText>
+                </View>
+              )}
+              <SongRow
+                title={item.title}
+                meta={item.artistName}
+                onPress={() => navigation.navigate('Lyrics', {
+                  songId: item.id,
+                  songTitle: item.title,
+                  artistName: item.artistName,
+                })}
+              />
+            </>
+          ) as any}
+          contentContainerStyle={grouped.length === 0 ? undefined : styles.songList}
           ListEmptyComponent={<EmptyState title="No songs found." />}
-          stickySectionHeadersEnabled={true}
           showsVerticalScrollIndicator={false}
+          estimatedItemSize={60}
         />
       )}
     </AppScreen>

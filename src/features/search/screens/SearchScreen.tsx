@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import { Feather as Icon } from '@expo/vector-icons';
 import { AppText, AppSearchBar } from '@/components';
 import { colors, spacing, radii, shadows } from '@/theme';
@@ -263,12 +264,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <>
             <SectionLabel label="SONGS" />
             <ResultCard>
-              {results.songs.map((song, i) => (
-                <React.Fragment key={song.id}>
-                  <SongRow song={song} onPress={handleSongPress} />
-                  {i < results.songs.length - 1 && <RowDivider />}
-                </React.Fragment>
-              ))}
+              {results.songs.length > 50 ? (
+                <FlashList
+                  data={results.songs}
+                  keyExtractor={song => song.id}
+                  renderItem={({ item }) => <SongRow song={item} onPress={handleSongPress} />}
+                  estimatedItemSize={60}
+                  ItemSeparatorComponent={RowDivider}
+                />
+              ) : (
+                results.songs.map((song, i) => (
+                  <React.Fragment key={song.id}>
+                    <SongRow song={song} onPress={handleSongPress} />
+                    {i < results.songs.length - 1 && <RowDivider />}
+                  </React.Fragment>
+                ))
+              )}
             </ResultCard>
           </>
         )}
@@ -277,12 +288,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <>
             <SectionLabel label="ARTISTS" />
             <ResultCard>
-              {results.artists.map((artist, i) => (
-                <React.Fragment key={artist.id}>
-                  <ArtistRow artist={artist} onPress={handleArtistPress} />
-                  {i < results.artists.length - 1 && <RowDivider />}
-                </React.Fragment>
-              ))}
+              {results.artists.length > 50 ? (
+                <FlashList
+                  data={results.artists}
+                  keyExtractor={artist => artist.id}
+                  renderItem={({ item }) => <ArtistRow artist={item} onPress={handleArtistPress} />}
+                  estimatedItemSize={60}
+                  ItemSeparatorComponent={RowDivider}
+                />
+              ) : (
+                results.artists.map((artist, i) => (
+                  <React.Fragment key={artist.id}>
+                    <ArtistRow artist={artist} onPress={handleArtistPress} />
+                    {i < results.artists.length - 1 && <RowDivider />}
+                  </React.Fragment>
+                ))
+              )}
             </ResultCard>
           </>
         )}
@@ -291,12 +312,22 @@ export default function SearchScreen({ navigation }: SearchScreenProps) {
           <>
             <SectionLabel label="ALBUMS" />
             <ResultCard>
-              {results.albums.map((album, i) => (
-                <React.Fragment key={album.id}>
-                  <AlbumRow album={album} onPress={handleAlbumPress} />
-                  {i < results.albums.length - 1 && <RowDivider />}
-                </React.Fragment>
-              ))}
+              {results.albums.length > 50 ? (
+                <FlashList
+                  data={results.albums}
+                  keyExtractor={album => album.id}
+                  renderItem={({ item }) => <AlbumRow album={item} onPress={handleAlbumPress} />}
+                  estimatedItemSize={60}
+                  ItemSeparatorComponent={RowDivider}
+                />
+              ) : (
+                results.albums.map((album, i) => (
+                  <React.Fragment key={album.id}>
+                    <AlbumRow album={album} onPress={handleAlbumPress} />
+                    {i < results.albums.length - 1 && <RowDivider />}
+                  </React.Fragment>
+                ))
+              )}
             </ResultCard>
           </>
         )}

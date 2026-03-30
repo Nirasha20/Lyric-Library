@@ -1,12 +1,11 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, memo } from 'react';
 import {
   View,
-  FlatList,
   Pressable,
   StyleSheet,
   Alert,
-  ListRenderItemInfo,
 } from 'react-native';
+import { FlashList } from '@shopify/flash-list';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AppScreen, AppText } from '@/components';
@@ -57,7 +56,7 @@ export default function SavedScreen({ navigation }: Readonly<Props>) {
   );
 
   const renderItem = useCallback(
-    ({ item }: ListRenderItemInfo<SavedLyricItem>) => (
+    ({ item }: { item: SavedLyricItem }) => (
       <SavedLyricCard
         item={item}
         onPress={() => handlePressItem(item)}
@@ -108,12 +107,13 @@ export default function SavedScreen({ navigation }: Readonly<Props>) {
           />
         </View>
       ) : (
-        <FlatList
+        <FlashList
           data={items}
           keyExtractor={(item) => item.songId}
           renderItem={renderItem}
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
+          estimatedItemSize={80}
         />
       )}
     </AppScreen>
@@ -127,7 +127,7 @@ interface CardProps {
   onUnsave: () => void;
 }
 
-function SavedLyricCard({ item, onPress, onUnsave }: Readonly<CardProps>) {
+const SavedLyricCard = memo(function SavedLyricCard({ item, onPress, onUnsave }: Readonly<CardProps>) {
   return (
     <Pressable
       onPress={onPress}
@@ -169,7 +169,7 @@ function SavedLyricCard({ item, onPress, onUnsave }: Readonly<CardProps>) {
       </Pressable>
     </Pressable>
   );
-}
+});
 
 //  Styles 
 
