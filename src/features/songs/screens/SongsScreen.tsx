@@ -116,7 +116,7 @@ export default function SongsScreen() {
         <FlashList
           data={grouped.flatMap(section => section.data.map(item => ({ ...item, sectionTitle: section.title })))}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
+          renderItem={({ item }: { item: { id: string; title: string; artistName: string; sectionTitle: string } }) => (
             <>
               {/* Render section header if first item of section */}
               {grouped.find(section => section.title === item.sectionTitle)?.data[0].id === item.id && (
@@ -134,7 +134,7 @@ export default function SongsScreen() {
                 })}
               />
             </>
-          ) as any}
+          )}
           contentContainerStyle={grouped.length === 0 ? undefined : styles.songList}
           ListEmptyComponent={<EmptyState title="No songs found." />}
           showsVerticalScrollIndicator={false}
@@ -189,12 +189,12 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xs,
     zIndex: 2,
   },
-  emptyList: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: 200,
-  },
+  // emptyList: {
+  //   flexGrow: 1,
+  //   justifyContent: 'center',
+  //   alignItems: 'center',
+  //   minHeight: 200,
+  // },
   songList: {
     paddingBottom: Platform.OS === 'ios' ? 32 : 16,
   },
